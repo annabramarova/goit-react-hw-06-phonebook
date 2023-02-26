@@ -1,8 +1,12 @@
-import PropTypes from 'prop-types';
 import * as Yup from 'yup';
+
+import Notiflix from 'notiflix';
+
 import { Formik} from "formik";
 import { Input, Button, FormStyled, Label, Error} from './ContactForm.styled'
-
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'redux/contactsSlice';
+import { getContacts } from 'redux/selectors';
 
 
 const schema = Yup.object().shape({
@@ -22,10 +26,17 @@ const INITIAL_VALUES = {
     name: '',
     number: '',
 }
-function ContactForm ({onAddContact}) {
+function ContactForm() {
+    const dispatch = useDispatch();
+    const contacts = useSelector(getContacts);
 
-    const handleSubmit = (values, { resetForm }) => {
-        onAddContact(values);
+    function handleSubmit(contact, { resetForm }){
+        if (contacts.findIndex(({ name }) => name.toLowerCase() === contact.name.toLowerCase()) !== -1) {
+            Notiflix.Notify.warning(`${contact.name} is already in contacts.`);
+            return;
+        }
+            
+        dispatch(addContact(contact));
         resetForm();
     }
     
@@ -59,11 +70,5 @@ function ContactForm ({onAddContact}) {
         );
     }
 
-
-
-ContactForm.propTypes = {
-    handleSubmit: PropTypes.func.isRequired,
-    onAddContact: PropTypes.func.isRequired,
-};
 
 export default ContactForm;
